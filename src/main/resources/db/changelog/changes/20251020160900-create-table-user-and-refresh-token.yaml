@@ -1,0 +1,110 @@
+databaseChangeLog:
+
+  ########################################
+  # 1️⃣ Bảng users
+  - changeSet:
+      id: init-1
+      author: phucnguyen
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: user_id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(256)
+                  constraints:
+                    unique: true
+              - column:
+                  name: phone_number
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+              - column:
+                  name: user_type
+                  type: ENUM('Admin','User')
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime(0)
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expired_date
+                  type: datetime(6)
+              - column:
+                  name: is_verified
+                  type: BIT(1)
+              - column:
+                  name: verification_code
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+  ########################################
+  # 2️⃣ Bảng refresh_tokens
+  - changeSet:
+      id: init-2
+      author: phucnguyen
+      changes:
+        - createTable:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: refresh_token
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP(0)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: revoked
+                  type: BIT(1)
+                  constraints:
+                    nullable: false
+
+  ########################################
+  # 3️⃣ Ràng buộc FK giữa refresh_tokens và users
+  - changeSet:
+      id: init-3
+      author: phucnguyen
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: refresh_tokens
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: user_id
+            onDelete: CASCADE
+            constraintName: fk_refresh_users

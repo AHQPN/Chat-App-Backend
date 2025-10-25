@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3-create-conversations
+      author: phucnguyen
+      changes:
+        - createTable:
+            tableName: conversations
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: workspace_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+              - column:
+                  name: type
+                  type: ENUM('CHANNEL','DM')
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_private
+                  type: TINYINT(1)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: BIGINT

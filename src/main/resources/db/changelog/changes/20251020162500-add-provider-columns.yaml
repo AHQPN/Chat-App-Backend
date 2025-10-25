@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20251020-01
+      author: phucnguyen
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: provider
+                  type: VARCHAR(50)
+                  defaultValue: 'local'
+                  remarks: "Xác định nguồn đăng nhập: local | google | both"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_id
+                  type: VARCHAR(255)
+                  remarks: "Lưu ID duy nhất từ provider bên ngoài (vd: Google sub)"
+                  constraints:
+                    nullable: true

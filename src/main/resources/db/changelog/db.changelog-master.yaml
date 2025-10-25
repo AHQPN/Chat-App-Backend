@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/20251020160900-create-table-user-and-refresh-token.yaml
+  - include:
+      file: db/changelog/changes/20251020161100-create-table-verification-code.yaml
+  - include:
+      file: db/changelog/changes/20251020162500-add-provider-columns.yaml
+  - include:
+      file: db/changelog/changes/20251022120200_drop_constraint_not_null.yaml

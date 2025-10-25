@@ -1,0 +1,79 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20251015-01
+      author: nguyen
+      changes:
+        - createTable:
+            tableName: verification_codes
+            columns:
+              - column:
+                  name: id
+                  type: integer
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: integer
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_verification_user
+                    references: users(user_id)
+
+              - column:
+                  name: verification_code
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 20251015-02
+      author: nguyen
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO verification_codes (user_id, verification_code, type, created_at, expires_at)
+              SELECT user_id,
+                     verification_code,
+                     'EMAIL_VERIFICATION',
+                     NOW(),
+                     expired_date
+              FROM users
+              WHERE verification_code IS NOT NULL;
+
+  - changeSet:
+      id: 20251015-03
+      author: nguyen
+      changes:
+        - dropColumn:
+            tableName: users
+            columnName: verification_code
+
+  - changeSet:
+      id: 20251015-04
+      author: nguyen
+      changes:
+        - dropColumn:
+            tableName: users
+            columnName: expired_date

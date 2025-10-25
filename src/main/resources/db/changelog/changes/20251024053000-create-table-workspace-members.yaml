@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2-create-workspace-members
+      author: phucnguyen
+      changes:
+        - createTable:
+            tableName: workspace_members
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: workspace_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: ENUM('ADMIN','MEMBER','GUEST')
+                  defaultValue: MEMBER
+              - column:
+                  name: joined_at
+                  type: BIGINT
+        - addUniqueConstraint:
+            tableName: workspace_members
+            columnNames: workspace_id,user_id
+            constraintName: uk_ws_user

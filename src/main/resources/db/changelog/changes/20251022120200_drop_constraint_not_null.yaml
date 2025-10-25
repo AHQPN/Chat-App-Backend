@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0
+      author: admin
+      changes:
+        - dropNotNullConstraint:
+            tableName: users
+            columnName: phone_number
+            columnDataType: VARCHAR(10)
+        - dropNotNullConstraint:
+            tableName: users
+            columnName: full_name
+            columnDataType: VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
