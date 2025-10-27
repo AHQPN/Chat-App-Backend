@@ -7,3 +7,15 @@ databaseChangeLog:
       file: db/changelog/changes/20251020162500-add-provider-columns.yaml
   - include:
       file: db/changelog/changes/20251022120200_drop_constraint_not_null.yaml
+  - include:
+      file: db/changelog/changes/20251024052600-create-table-workspaces.yaml
+  - include:
+      file: db/changelog/changes/20251024053000-create-table-workspace-members.yaml
+  - include:
+      file: db/changelog/changes/20251024053200-create-table-conversations.yaml
+  - include:
+      file: db/changelog/changes/20251024054500-create-table-conversation-members.yaml
+  - include:
+      file: db/changelog/changes/20251024054600-create-table-messages.yaml
+  - include:
+      file: db/changelog/changes/20251024054800-add-foreign-keys-for-5-before-table.yaml

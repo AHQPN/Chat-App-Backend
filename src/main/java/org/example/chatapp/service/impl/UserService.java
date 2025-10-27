@@ -2,15 +2,17 @@ package org.example.chatapp.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.chatapp.dto.request.SignupRequest;
+import org.example.chatapp.dto.response.ApiResponse;
 import org.example.chatapp.dto.response.OAuthUserInfoResponse;
 import org.example.chatapp.entity.User;
 import org.example.chatapp.entity.VerificationCode;
 import org.example.chatapp.exception.AppException;
 import org.example.chatapp.exception.ErrorCode;
 import org.example.chatapp.repository.UserRepository;
+import org.example.chatapp.repository.VerificationCodeRepository;
 import org.example.chatapp.service.enums.AuthProviderEnum;
 import org.example.chatapp.service.enums.RoleEnum;
-import org.example.chatapp.service.enums.VerificationCodeType;
+import org.example.chatapp.service.enums.VerificationCodeEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    VerificationCodeService verificationCodeService;
+    private final VerificationCodeService verificationCodeService;
+    private final VerificationCodeRepository verificationCodeRepository;
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
 
@@ -51,13 +54,14 @@ public class UserService {
         user.setUserType(userType);
         user.setCreatedAt(LocalDateTime.now());
         user.setPasswordHash(passwordEncoder.encode(signupRequest.getPassword()));
+        userRepository.save(user);
         if (!user.getIsVerified())
         {
-             Optional<VerificationCode>  verificationCode = verificationCodeService.generateNewVerificationCode(user, VerificationCodeType.EMAIL_VERIFICATION);
+             Optional<VerificationCode>  verificationCode = verificationCodeService.generateNewVerificationCode(user, VerificationCodeEnum.EMAIL_VERIFICATION);
              verificationCodeService.sendVerificationEmail(user,siteURL,verificationCode.get());
         }
 
-        return userRepository.save(user);
+        return user;
     }
 
     @Transactional
@@ -116,6 +120,8 @@ public class UserService {
                 throw new IllegalArgumentException("Unsupported auth provider: " + authProviderEnum);
         }
     }
+
+
 
 
 

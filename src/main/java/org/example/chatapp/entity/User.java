@@ -1,5 +1,6 @@
 package org.example.chatapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.example.chatapp.entity.VerificationCode;
 import org.example.chatapp.service.enums.AuthProviderEnum;
 import org.example.chatapp.service.enums.RoleEnum;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -51,9 +53,22 @@ public class User {
     private Boolean isVerified = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VerificationCode> verificationCodes;
+    @JsonManagedReference
+    private Set<VerificationCode> verificationCodes;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Set<WorkspaceMember> workspaceMemberships;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Set<ConversationMember> conversationMemberships;
 
 
-    public User() {}
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Set<Message> sentMessages;
+
+
 
 }

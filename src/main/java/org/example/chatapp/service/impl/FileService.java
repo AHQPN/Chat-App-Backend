@@ -27,7 +27,7 @@ public class FileService {
 
         storage.create(blobInfo, file.getBytes());
 
-        // Trả về URL public (nếu bucket public) hoặc dùng Signed URL nếu private
+
         return String.format("https://storage.googleapis.com/%s/%s", bucketName, fileName);
     }
 }

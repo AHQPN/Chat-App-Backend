@@ -1,6 +1,97 @@
 databaseChangeLog:
   - changeSet:
-      id: 0
+      id: 5-add-foreign-keys
       author: admin
       changes:
-        -
+
+        - addForeignKeyConstraint:
+            baseTableName: workspaces
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: user_id
+            constraintName: fk_workspaces_users
+
+
+        - addForeignKeyConstraint:
+            baseTableName: workspace_members
+            baseColumnNames: workspace_id
+            referencedTableName: workspaces
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_ws_members_workspaces
+
+
+        - addForeignKeyConstraint:
+            baseTableName: workspace_members
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: user_id
+            onDelete: CASCADE
+            constraintName: fk_ws_members_users
+
+        # 3. Ràng buộc FK cho bảng conversations (workspace_id -> workspaces.id)
+        - addForeignKeyConstraint:
+            baseTableName: conversations
+            baseColumnNames: workspace_id
+            referencedTableName: workspaces
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_conversations_workspaces
+
+        - addForeignKeyConstraint:
+            baseTableName: conversations
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: user_id
+            constraintName: fk_conversations_users
+
+
+        - addForeignKeyConstraint:
+            baseTableName: conversation_members
+            baseColumnNames: conversation_id
+            referencedTableName: conversations
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_convo_members_conversations
+
+
+        - addForeignKeyConstraint:
+            baseTableName: conversation_members
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: user_id
+            onDelete: CASCADE
+            constraintName: fk_convo_members_users
+
+        - addForeignKeyConstraint:
+            baseTableName: conversation_members
+            baseColumnNames: last_read_message_id
+            referencedTableName: messages
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_convo_members_messages
+
+        - addForeignKeyConstraint:
+            baseTableName: messages
+            baseColumnNames: conversation_id
+            referencedTableName: conversations
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_messages_conversations
+
+
+        - addForeignKeyConstraint:
+            baseTableName: messages
+            baseColumnNames: sender_id
+            referencedTableName: users
+            referencedColumnNames: user_id
+            onDelete: RESTRICT
+            constraintName: fk_messages_users
+
+        - addForeignKeyConstraint:
+            baseTableName: messages
+            baseColumnNames: parent_id
+            referencedTableName: messages
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_messages_parent

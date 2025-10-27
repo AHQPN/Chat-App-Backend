@@ -1,6 +1,7 @@
 package org.example.chatapp.entity;
 
-import org.example.chatapp.service.enums.VerificationCodeType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.example.chatapp.service.enums.VerificationCodeEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public class VerificationCode {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @Column(name = "verification_code", nullable = false)
@@ -26,7 +28,7 @@ public class VerificationCode {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 50)
-    private VerificationCodeType type;
+    private VerificationCodeEnum type;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

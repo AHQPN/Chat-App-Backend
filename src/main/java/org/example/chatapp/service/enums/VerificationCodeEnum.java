@@ -1,6 +1,6 @@
 package org.example.chatapp.service.enums;
 
-public enum VerificationCodeType {
+public enum VerificationCodeEnum {
     EMAIL_VERIFICATION,
     PASSWORD_RESET,
     CHANGE_MAIL,

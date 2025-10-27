@@ -20,39 +20,41 @@ public enum ErrorCode {
     FAIL_TO_VERIFY_EMAIL(HttpStatus.INTERNAL_SERVER_ERROR, 1007, "Failed to send verification email"),
 
 
-    // Book errors
-    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, 2000, "Book not found"),
-    BOOK_EXIST(HttpStatus.BAD_REQUEST, 2001, "Book already exists"),
-    BOOK_OUT_OF_STOCK(HttpStatus.BAD_REQUEST, 2002, "Book out of stock"),
-    BOOK_INVALID_GENRE(HttpStatus.BAD_REQUEST, 2003, "Invalid book genre"),
-    BOOK_INVALID_PUBLISHER(HttpStatus.BAD_REQUEST, 2004, "Invalid book publisher"),
+    // WORKSPACE ERRORS (1300 Series)
+    // ----------------------------------------------------------------------
+    WORKSPACE_NOT_FOUND(HttpStatus.NOT_FOUND, 1300, "Workspace not found"),
+    WORKSPACE_NAME_EXIST(HttpStatus.BAD_REQUEST, 1301, "Workspace name already exists"),
+    WORKSPACE_ACCESS_DENIED(HttpStatus.FORBIDDEN, 1302, "You do not have permission to access this workspace"),
+    WORKSPACE_NAME_INVALID(HttpStatus.BAD_REQUEST, 1303, "Workspace name must be between 3 and 255 characters"),
+    USER_NOT_IN_WORKSPACE(HttpStatus.BAD_REQUEST, 1304, "User not in workspace"),
+    NO_PERMISSION_IN_WORKSPACE(HttpStatus.FORBIDDEN, 1305, "You do not have permission to access this workspace"),
+    // ----------------------------------------------------------------------
+    // WORKSPACE MEMBER ERRORS (1400 Series)
+    // ----------------------------------------------------------------------
+    MEMBER_ALREADY_IN_WORKSPACE(HttpStatus.BAD_REQUEST, 1400, "User is already a member of this workspace"),
+    MEMBER_NOT_FOUND_IN_WORKSPACE(HttpStatus.NOT_FOUND, 1401, "User is not a member of this workspace"),
+    MEMBER_ROLE_INVALID(HttpStatus.BAD_REQUEST, 14002, "Invalid role assigned to the member"),
+    MEMBER_CANNOT_LEAVE_AS_ADMIN(HttpStatus.FORBIDDEN, 1403, "The last admin cannot leave the workspace"),
 
-    // Author errors
-    AUTHOR_NOT_FOUND(HttpStatus.NOT_FOUND, 3000, "Author not found"),
-    AUTHOR_EXIST(HttpStatus.BAD_REQUEST, 3001, "Author already exists"),
 
-    // Genre errors
-    GENRE_NOT_FOUND(HttpStatus.NOT_FOUND, 4000, "Genre not found"),
-    GENRE_EXIST(HttpStatus.BAD_REQUEST, 4001, "Genre already exists"),
+    // ----------------------------------------------------------------------
+    // CONVERSATION ERRORS (1500 Series)
+    // ----------------------------------------------------------------------
+    CONVERSATION_NOT_FOUND(HttpStatus.NOT_FOUND, 1500, "Conversation (Channel/DM) not found"),
+    CONVERSATION_NAME_EXIST(HttpStatus.BAD_REQUEST, 1501, "Channel name already exists in this workspace"),
+    CONVERSATION_TYPE_INVALID(HttpStatus.BAD_REQUEST, 1502, "Invalid conversation type (must be CHANNEL or DM)"),
+    CONVERSATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, 1503, "You do not have permission to view this conversation"),
+    CONVERSATION_REQUIRES_TWO_MEMBERS(HttpStatus.BAD_REQUEST, 1504, "Direct Message (DM) must have exactly two members"),
 
-    // Publisher errors
-    PUBLISHER_NOT_FOUND(HttpStatus.NOT_FOUND, 5000, "Publisher not found"),
-    PUBLISHER_EXIST(HttpStatus.BAD_REQUEST, 5001, "Publisher already exists"),
 
-    // Borrow slip errors
-    BORROW_SLIP_NOT_FOUND(HttpStatus.NOT_FOUND, 6000, "Borrow slip not found"),
-    BORROW_SLIP_OVERDUE(HttpStatus.BAD_REQUEST, 6001, "Borrow slip is overdue"),
-    BORROW_SLIP_ALREADY_RETURNED(HttpStatus.BAD_REQUEST, 6002, "Borrow slip already returned"),
-
-    // Borrow slip detail errors
-    BORROW_SLIP_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, 7000, "Borrow slip detail not found"),
-
-    // Payment errors
-    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, 8000, "Payment not found"),
-    PAYMENT_FAILED(HttpStatus.BAD_REQUEST, 8001, "Payment failed"),
-
-    // Purchase slip errors
-    PURCHASE_SLIP_NOT_FOUND(HttpStatus.NOT_FOUND, 9000, "Purchase slip not found"),
+    // ----------------------------------------------------------------------
+    // MESSAGE ERRORS (1600 Series)
+    // ----------------------------------------------------------------------
+    MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, 1600, "Message not found"),
+    MESSAGE_EDIT_OWNERSHIP(HttpStatus.FORBIDDEN, 1601, "You can only edit your own messages"),
+    MESSAGE_TOO_LONG(HttpStatus.BAD_REQUEST, 1602, "Message content exceeds the maximum length (4000 characters)"),
+    MESSAGE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, 1603, "Message has already been deleted"),
+    MESSAGE_CONVERSATION_MISMATCH(HttpStatus.BAD_REQUEST, 1604, "Reply message must belong to the same conversation"),
 
     // Refresh token errors
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, 10000, "Refresh token not found"),

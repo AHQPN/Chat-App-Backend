@@ -11,15 +11,18 @@ import org.example.chatapp.dto.response.OAuthUserInfoResponse;
 import org.example.chatapp.dto.response.TokenRefreshResponse;
 import org.example.chatapp.entity.RefreshToken;
 import org.example.chatapp.entity.User;
+import org.example.chatapp.entity.VerificationCode;
 import org.example.chatapp.exception.AppException;
 import org.example.chatapp.exception.ErrorCode;
 import org.example.chatapp.security.jwt.JwtUtils;
 import org.example.chatapp.security.model.UserDetailsImpl;
+import org.example.chatapp.service.enums.VerificationCodeEnum;
 import org.example.chatapp.service.impl.OAuthService;
 import org.example.chatapp.service.impl.RefreshTokenService;
 import org.example.chatapp.service.impl.UserService;
 import org.example.chatapp.service.enums.AuthProviderEnum;
 import org.example.chatapp.service.enums.RoleEnum;
+import org.example.chatapp.service.impl.VerificationCodeService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,6 +42,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -50,6 +54,7 @@ public class AuthController {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final OAuthService oAuthService;
+    private final VerificationCodeService verificationCodeService;
 
 
     // ===== LOGIN =====
@@ -203,5 +208,65 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(ApiResponse.builder().message("Logout successful").build());
+    }
+
+    // ===== Resend verified code  =====
+    @PostMapping("/resend")
+    public ResponseEntity<String> sendVerification(
+            @RequestParam String email,
+            @RequestParam VerificationCodeEnum type,
+            @Value("${APP_SITE_URL}") String siteUrl) {
+
+        // 1️⃣ Tìm user theo email
+        Optional<User> optionalUser = userService.getUserByIdentifier(email);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        User user = optionalUser.get();
+
+        // 2️⃣ Tạo mã xác minh mới
+        Optional<VerificationCode> optionalCode = verificationCodeService.generateNewVerificationCode(user, type);
+
+
+        // 3️⃣ Gửi email xác minh
+        optionalCode.ifPresent(code ->
+                verificationCodeService.sendVerificationEmail(user, siteUrl, code)
+        );
+
+        return ResponseEntity.ok("Verification email sent successfully!");
+    }
+
+    // ====================== XÁC MINH CODE ======================
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyCode(
+            @RequestParam String code,
+            @RequestParam VerificationCodeEnum type) {
+
+        ApiResponse result = verificationCodeService.verify(code, type);
+        boolean success = result.getCode() == 1000;
+        String html = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <title>Verification Status</title>\n" +
+                "    <style>\n" +
+                "        body { font-family: Arial, sans-serif; background-color: #f5f6fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }\n" +
+                "        .container { background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }\n" +
+                "        h1 { color: " + (success ? "#2ecc71" : "#e74c3c") + "; margin-bottom: 20px; }\n" +
+                "        p { font-size: 16px; color: #333; margin-bottom: 30px; }\n" +
+                "        a.button { display: inline-block; text-decoration: none; background-color: #3498db; color: #fff; padding: 12px 24px; border-radius: 6px; transition: background-color 0.3s ease; }\n" +
+                "        a.button:hover { background-color: #2980b9; }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "    <div class=\"container\">\n" +
+                "        <h1>" + (success ? "Verification Successful!" : "Verification Failed") + "</h1>\n" +
+                "        <p>" + result.getMessage() + "</p>\n" +
+                "        <a class=\"button\" href=\"http://localhost:3000\">Go Back to App</a>\n" +
+                "    </div>\n" +
+                "</body>\n" +
+                "</html>";
+
+        return ResponseEntity.ok().body(html);
     }
 }

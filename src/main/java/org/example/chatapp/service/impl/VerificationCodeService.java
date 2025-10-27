@@ -1,12 +1,13 @@
 package org.example.chatapp.service.impl;
 
+import org.example.chatapp.dto.response.ApiResponse;
 import org.example.chatapp.entity.User;
 import org.example.chatapp.entity.VerificationCode;
 import org.example.chatapp.exception.AppException;
 import org.example.chatapp.exception.ErrorCode;
 import org.example.chatapp.repository.UserRepository;
 import org.example.chatapp.repository.VerificationCodeRepository;
-import org.example.chatapp.service.enums.VerificationCodeType;
+import org.example.chatapp.service.enums.VerificationCodeEnum;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
@@ -27,14 +28,13 @@ public class VerificationCodeService {
     private final JavaMailSender mailSender;
 
     // ====================== TẠO CODE MỚI ======================
-    public Optional<VerificationCode> generateNewVerificationCode(User user,VerificationCodeType type) {
+    public Optional<VerificationCode> generateNewVerificationCode(User user, VerificationCodeEnum type) {
 
         Optional<VerificationCode> existingCode = verificationCodeRepository
                 .findByUserAndType(user, type)
                 .filter(code -> code.getExpiresAt().isAfter(LocalDateTime.now()));
 
         if (existingCode.isPresent()) {
-            // Đã có mã còn hạn, không tạo mới
             return existingCode;
         }
 
@@ -59,8 +59,8 @@ public class VerificationCodeService {
         String toAddress = user.getEmail();
         String senderName = "SparkMinds";
         String fromAddress = "nguyenbro9721@gmail.com";
-        VerificationCodeType type = verificationCode.getType();
-        String verifyURL = siteURL + "/verification/verify?code="
+        VerificationCodeEnum type = verificationCode.getType();
+        String verifyURL = siteURL + "/auth/verify?code="
                 + verificationCode.getVerificationCode()
                 + "&type=" + type.name();
 
@@ -114,36 +114,41 @@ public class VerificationCodeService {
         }
     }
 
-    public Boolean verify(String code, VerificationCodeType type) {
-        VerificationCode verificationCode = verificationCodeRepository.findByVerificationCode(code)
-                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CODE));
+    public ApiResponse verify(String code, VerificationCodeEnum type) {
 
-        if (verificationCode.getExpiresAt() != null &&
-                verificationCode.getExpiresAt().isBefore(LocalDateTime.now())) {
-            verificationCodeRepository.delete(verificationCode);
-            throw new AppException(ErrorCode.EXPIRED_VERIFICATION_CODE);
+        Optional<VerificationCode> verificationCode = verificationCodeRepository.findByVerificationCode(code);
+        if(verificationCode.isEmpty()) {
+            return ApiResponse.builder().code(ErrorCode.INVALID_CODE.getCode()).message(ErrorCode.INVALID_CODE.getMessage()).build();
+        }
+        VerificationCode verificationCode1 = verificationCode.get();
+        if (verificationCode1.getExpiresAt() != null &&
+                verificationCode1.getExpiresAt().isBefore(LocalDateTime.now())) {
+            verificationCodeRepository.delete(verificationCode1);
+            return ApiResponse.builder().code(ErrorCode.EXPIRED_VERIFICATION_CODE.getCode()).message(ErrorCode.EXPIRED_VERIFICATION_CODE.getMessage()).build();
         }
 
-        if (!verificationCode.getType().equals(type)) {
-            throw new AppException(ErrorCode.INVALID_CODE);
+        if (!verificationCode1.getType().equals(type)) {
+            return ApiResponse.builder().code(ErrorCode.INVALID_CODE.getCode()).message(ErrorCode.INVALID_CODE.getMessage()).build();
         }
 
-        User user = verificationCode.getUser();
+        User user = verificationCode1.getUser();
         switch (type) {
             case EMAIL_VERIFICATION -> {
                 if (!user.getIsVerified()) {
                     user.setIsVerified(true);
                     userRepository.save(user);
                 }
-                break;
+                return ApiResponse.builder().code(1000).message("Your email was verified").build();
             }
             case PASSWORD_RESET, CHANGE_MAIL -> {
-                break;
             }
-            default -> throw new AppException(ErrorCode.INVALID_CODE);
+            default -> {
+
+                return ApiResponse.builder().code(ErrorCode.INVALID_CODE.getCode()).message(ErrorCode.INVALID_CODE.getMessage()).build();
+            }
         }
-        verificationCodeRepository.delete(verificationCode);
-        return true;
+        verificationCodeRepository.delete(verificationCode1);
+        return ApiResponse.builder().code(1000).message("Your email was verified").build();
 
     }
 }
