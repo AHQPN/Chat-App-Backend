@@ -30,7 +30,7 @@ public class UserDetailsImpl implements UserDetails {
         if (user.getUserType() != null) roleName += user.getUserType().name();
         else roleName += "User";
 
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(roleName);
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + roleName.toUpperCase());
 
         return new UserDetailsImpl(
                 user.getUserId(),

@@ -8,8 +8,8 @@ import org.example.chatapp.entity.Workspace;
 import org.example.chatapp.security.model.UserDetailsImpl;
 import org.example.chatapp.service.impl.WorkspaceService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +25,7 @@ public class WorkspaceController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createWorkspace(@RequestBody WorkspaceRequest workspace,@AuthenticationPrincipal UserDetailsImpl principal) {
 
         Workspace workspace1 = workspaceService.createNewWorkspace(workspace, principal.getId());
@@ -32,6 +33,7 @@ public class WorkspaceController {
     }
 
     @PostMapping("/add-member")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addMemberToWorkspace(@RequestBody AddMemberToWorkspaceRequest request,@AuthenticationPrincipal UserDetailsImpl principal) {
         workspaceService.addMemberToWorkspace(request,principal.getId());
         return ResponseEntity.ok().body(ApiResponse.builder().message("Thêm thành viên thành công").build());
@@ -48,6 +50,8 @@ public class WorkspaceController {
 
         return ResponseEntity.ok().body(ApiResponse.<List<Workspace>>builder().data(workspaces).build());
     }
+
+
 
 
 }

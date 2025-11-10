@@ -11,7 +11,7 @@ import org.example.chatapp.service.enums.WorkspaceRoleEnum;
 public class ConversationMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "joined_at")
     private Long joinedAt;

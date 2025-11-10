@@ -1,0 +1,180 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-message-mentions
+      author: phuc nguyen
+      changes:
+        - createTable:
+            tableName: message_mentions
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: conversation_member_id
+                  type: INT
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: message_mentions
+            baseColumnNames: message_id
+            referencedTableName: messages
+            referencedColumnNames: id
+            constraintName: fk_mention_msg
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: message_mentions
+            baseColumnNames: conversation_member_id
+            referencedTableName: conversation_members
+            referencedColumnNames: id
+            constraintName: fk_mention_member
+            onDelete: CASCADE
+
+  - changeSet:
+      id: 002-create-message-reactions
+      author: chatapp
+      changes:
+        - createTable:
+            tableName: message_reactions
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: conversation_member_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: emoji
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reacted_at
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: message_reactions
+            baseColumnNames: message_id
+            referencedTableName: messages
+            referencedColumnNames: id
+            constraintName: fk_reaction_msg
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: message_reactions
+            baseColumnNames: conversation_member_id
+            referencedTableName: conversation_members
+            referencedColumnNames: id
+            constraintName: fk_reaction_member
+            onDelete: CASCADE
+
+  - changeSet:
+      id: 003-create-pinned-messages
+      author: chatapp
+      changes:
+        - createTable:
+            tableName: pinned_messages
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: conversation_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pinned_by_member_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pinned_at
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: pinned_messages
+            baseColumnNames: message_id
+            referencedTableName: messages
+            referencedColumnNames: id
+            constraintName: fk_pin_msg
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: pinned_messages
+            baseColumnNames: conversation_id
+            referencedTableName: conversations
+            referencedColumnNames: id
+            constraintName: fk_pin_convo
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: pinned_messages
+            baseColumnNames: pinned_by_member_id
+            referencedTableName: conversation_members
+            referencedColumnNames: id
+            constraintName: fk_pin_by
+            onDelete: RESTRICT
+
+  - changeSet:
+      id: 004-create-attachments
+      author: chatapp
+      changes:
+        - createTable:
+            tableName: attachments
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_url
+                  type: VARCHAR(512)
+              - column:
+                  name: file_type
+                  type: VARCHAR(50)
+              - column:
+                  name: file_size
+                  type: BIGINT
+              - column:
+                  name: uploaded_at
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: attachments
+            baseColumnNames: message_id
+            referencedTableName: messages
+            referencedColumnNames: id
+            constraintName: fk_att_msg
+            onDelete: CASCADE
+

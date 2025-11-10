@@ -1,6 +1,8 @@
 package org.example.chatapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -33,20 +35,21 @@ public class Conversation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workspace_id", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     private Workspace workspace;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     private User creator;
 
     // Quan hệ 1:N với ConversationMember
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)
-    @JsonIgnore
+    @JsonManagedReference
     private Set<ConversationMember> members;
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Set<Message> messages;
 
 }

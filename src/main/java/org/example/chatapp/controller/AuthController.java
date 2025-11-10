@@ -59,7 +59,9 @@ public class AuthController {
 
     // ===== LOGIN =====
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse> login(
+            @Valid @RequestBody LoginRequest loginRequest,
+            HttpServletResponse response) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getIdentifier(), loginRequest.getPassword())
@@ -92,7 +94,9 @@ public class AuthController {
 
     // Đang hardcode state, chưa dùng đúng chức năng của state trong oauth2 để chống CSRF, em sẽ tham khảo xử lý sau
     @GetMapping("/social-login")
-    public ResponseEntity<ApiResponse> socialAuth(@RequestParam("login_type") String loginType,HttpServletRequest request)
+    public ResponseEntity<ApiResponse> socialAuth(
+            @RequestParam("login_type") String loginType,
+            HttpServletRequest request)
     {
         AuthProviderEnum authProviderEnum = AuthProviderEnum.valueOf(loginType.trim().toUpperCase());
 
@@ -106,7 +110,10 @@ public class AuthController {
 
 
     @GetMapping("/social-login/callback")
-    public ResponseEntity<ApiResponse> socialCallBack(@RequestParam("code") String code , @RequestParam("state") String state,HttpServletRequest request)
+    public ResponseEntity<ApiResponse> socialCallBack
+            (@RequestParam("code") String code ,
+             @RequestParam("state") String state,
+             HttpServletRequest request)
     {
         Map<String, String> params = Arrays.stream(state.split("&"))
                 .map(s -> s.split("="))
@@ -135,8 +142,10 @@ public class AuthController {
     }
     // ===== SIGNUP =====
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse> signup(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request, @Value("${APP_SITE_URL}") String siteUrl) {
-
+    public ResponseEntity<ApiResponse> signup(
+            @Valid @RequestBody SignupRequest signUpRequest,
+            HttpServletRequest request,
+            @Value("${APP_SITE_URL}") String siteUrl) {
 
         User user = userService.createUser(signUpRequest, RoleEnum.User, true, siteUrl);
 

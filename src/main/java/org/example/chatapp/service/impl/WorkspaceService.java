@@ -11,6 +11,7 @@ import org.example.chatapp.exception.ErrorCode;
 import org.example.chatapp.repository.UserRepository;
 import org.example.chatapp.repository.WorkspaceMemberRepository;
 import org.example.chatapp.repository.WorkspaceRepository;
+import org.example.chatapp.service.enums.RoleEnum;
 import org.example.chatapp.service.enums.WorkspaceRoleEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,8 @@ public class WorkspaceService {
     public Workspace createNewWorkspace(WorkspaceRequest workspace,Integer createrId) {
         User creator = userRepository.findById(createrId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
+        if(creator.getUserType() != RoleEnum.Admin)
+            throw new  AppException(ErrorCode.ACCESS_DENIED);
         Workspace newWorkspace = new Workspace();
         newWorkspace.setName(workspace.getName());
         newWorkspace.setCreator(creator);

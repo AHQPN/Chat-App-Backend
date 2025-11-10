@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     // General
     UNCATEGORIZED(HttpStatus.INTERNAL_SERVER_ERROR, 9999, "Uncategorized error"),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, 9998, "Access denied"),
 
     // User errors
     USER_EXIST(HttpStatus.BAD_REQUEST, 1001, "User already exists"),
@@ -45,8 +46,8 @@ public enum ErrorCode {
     CONVERSATION_TYPE_INVALID(HttpStatus.BAD_REQUEST, 1502, "Invalid conversation type (must be CHANNEL or DM)"),
     CONVERSATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, 1503, "You do not have permission to view this conversation"),
     CONVERSATION_REQUIRES_TWO_MEMBERS(HttpStatus.BAD_REQUEST, 1504, "Direct Message (DM) must have exactly two members"),
-
-
+    USER_NOT_IN_CONVERSATION(HttpStatus.FORBIDDEN, 1505, "User not in conversation"),
+    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, 1506, "Member not found"),
     // ----------------------------------------------------------------------
     // MESSAGE ERRORS (1600 Series)
     // ----------------------------------------------------------------------
@@ -55,8 +56,13 @@ public enum ErrorCode {
     MESSAGE_TOO_LONG(HttpStatus.BAD_REQUEST, 1602, "Message content exceeds the maximum length (4000 characters)"),
     MESSAGE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, 1603, "Message has already been deleted"),
     MESSAGE_CONVERSATION_MISMATCH(HttpStatus.BAD_REQUEST, 1604, "Reply message must belong to the same conversation"),
+    MESSAGE_NOT_IN_CONVERSATION(HttpStatus.BAD_REQUEST,1605,"Message is not in conversation or not in conversation"),
+    MESSAGE_ALREADY_PINNED(HttpStatus.BAD_REQUEST, 1606, "Message is already pinned"),
+    NOT_PINNED(HttpStatus.BAD_REQUEST, 1607, "Not a pinned message"),
 
-    // Refresh token errors
+
+    REACTION_NOT_FOUND(HttpStatus.BAD_REQUEST, 1608, "Reaction not found"),
+
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, 10000, "Refresh token not found"),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 10001, "Refresh token expired"),
     REFRESH_TOKEN_REVOKED(HttpStatus.UNAUTHORIZED, 10002, "Refresh token revoked"),
