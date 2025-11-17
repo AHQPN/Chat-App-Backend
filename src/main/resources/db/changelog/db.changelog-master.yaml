@@ -21,3 +21,5 @@ databaseChangeLog:
       file: db/changelog/changes/20251024054800-add-foreign-keys-for-5-before-table.yaml
   - include:
       file: db/changelog/changes/20251105043000-create_message-related-tables.yaml
+  - include:
+      file: db/changelog/changes/20251211045900_altertable_attachment.yaml

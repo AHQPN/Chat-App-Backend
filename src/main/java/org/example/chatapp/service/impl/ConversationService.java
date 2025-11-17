@@ -56,8 +56,9 @@ public class ConversationService {
 
     }
 
-    public ConversationMember findMemberByUserId(Integer userId, Integer conversationId){
-        return conversationMemberRepository.findByConversation_IdAndUser_UserId(userId,conversationId).orElseThrow();
+    public Integer findMemberByUserId(Integer userId, Integer conversationId){
+        ConversationMember member =  conversationMemberRepository.findByConversation_IdAndUser_UserId(conversationId,userId).orElseThrow();
+        return member.getId();
     }
 
     public void addMemberToConversation(AddMembersRequest addMembersRequest, Integer conversationId){

@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0
+      author: admin
+      changes:
+        - dropNotNullConstraint:
+            columnDataType: INT
+            tableName: attachments
+            columnName: message_id
+        - modifyDataType:
+            tableName: attachments
+            columnName: file_type
+            newDataType: varchar(255)

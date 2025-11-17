@@ -3,25 +3,18 @@ package org.example.chatapp.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatapp.dto.request.CreateMessageRequest;
 import org.example.chatapp.dto.request.MessageUpdateRequest;
-import org.example.chatapp.dto.request.ReactMessageRequest;
 import org.example.chatapp.dto.response.ApiResponse;
 import org.example.chatapp.dto.response.MessageResponse;
-import org.example.chatapp.entity.ConversationMember;
 import org.example.chatapp.exception.AppException;
 import org.example.chatapp.exception.ErrorCode;
 import org.example.chatapp.security.model.UserDetailsImpl;
 import org.example.chatapp.service.impl.ConversationService;
-import org.example.chatapp.service.impl.MessageInteractionService;
 import org.example.chatapp.service.impl.MessageService;
+import org.example.chatapp.ultis.PrincipalCast;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,49 +28,26 @@ public class MessageController {
     private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ConversationService conversationService;
-    private final MessageInteractionService messageInteractionService;
+//    private final MessageInteractionService messageInteractionService;
+
     @MessageMapping("/message.send/{conversationId}")
     public void sendMessage(
             @Payload CreateMessageRequest request,
             @DestinationVariable Integer conversationId,
-            SimpMessageHeaderAccessor headerAccessor,
+            Principal principal,
             @Header(value = "parentMessageId", required = false) Integer parentMessageId) {
-        Principal principal = headerAccessor.getUser();
 
         if (principal == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) principal;
-        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
-        Integer userId = userDetails.getId();
+        // Cast để lấy UserDetailsImpl
 
-        ConversationMember conversationMember = conversationService.findMemberByUserId(userId, conversationId);
-        MessageResponse messageResponse = messageService.createMessage(request, conversationMember.getId(),conversationId,parentMessageId);
+        Integer userId =PrincipalCast.castUserIdFromPrincipal(principal);
+
+        Integer conversationMemberId = conversationService.findMemberByUserId(userId, conversationId);
+        messageService.createMessage(request, conversationMemberId,conversationId,parentMessageId);
     }
-
-    @MessageMapping("/message/{messageId}")
-    public void reactMessage(
-            @Payload ReactMessageRequest request,
-            @DestinationVariable Integer messageId
-            )
-    {
-        messageInteractionService.addReaction(messageId,1,request.getEmoji());
-    }
-
-
-
-
-//    @MessageMapping("/messages/react")
-//    public void react(@Payload ReactionRequest request) {
-//        messageInteractionService.addReaction(request.getMessageId(), request.getMemberId(), request.getEmoji());
-//
-//        // 2️⃣ Push realtime tới tất cả client subscribe conversation
-//        messagingTemplate.convertAndSend(
-//                "/topic/conversation." + request.getConversationId(),
-//                new ReactionResponse(request.getMessageId(), request.getMemberId(), request.getEmoji())
-//        );
-//    }
 
 
     //  Lấy danh sách tin nhắn
@@ -90,7 +60,7 @@ public class MessageController {
         if(!conversationService.isMemberInConversation(conversationId,userDetails.getId()))
             throw new AppException(ErrorCode.ACCESS_DENIED);
 
-        Page<MessageResponse> messageResponses =  messageService.getMessagesByConversation(conversationId,page,size);
+        Page<MessageResponse> messageResponses =  messageService.getLatestMessages(conversationId,page,size);
         return ResponseEntity.ok().body(ApiResponse.builder().data(messageResponses).build());
     }
 
