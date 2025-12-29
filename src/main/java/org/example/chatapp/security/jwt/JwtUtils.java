@@ -1,10 +1,10 @@
 package org.example.chatapp.security.jwt;
 
-import org.example.chatapp.security.model.UserDetailsImpl;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.example.chatapp.entity.User;
+import org.example.chatapp.security.model.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +35,8 @@ public class JwtUtils {
                 .setSubject((userPrincipal.getUsername()))
                 .claim("userId", userPrincipal.getId())
                 .claim("role", userPrincipal.getRole())
+                .claim("fullName", userPrincipal.getFullName())
+                .claim("avatar", userPrincipal.getAvatar())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key(), SignatureAlgorithm.HS256)
@@ -49,9 +51,16 @@ public class JwtUtils {
         return Jwts.parserBuilder().setSigningKey(key()).build()
                 .parseClaimsJws(token).getBody().getSubject();
     }
-    public String generateTokenFromIdentifier(String identifier) {
-        return Jwts.builder().setSubject(identifier).setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs)).signWith(SignatureAlgorithm.HS512, jwtSecret)
+    public String generateTokenFromIdentifier(User user) {
+            return Jwts.builder()
+                .setSubject(user.getPhoneNumber() != null ? user.getPhoneNumber() : user.getEmail())
+                .claim("userId", user.getUserId())
+                .claim("role", user.getUserType())
+                .claim("fullName", user.getFullName())
+                .claim("avatar", user.getAvatar())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
 

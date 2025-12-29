@@ -20,4 +20,6 @@ public class CreateConversationRequest {
     @NotNull
     private Boolean isPrivate = false;
 
+    // Danh sách user IDs để thêm vào conversation (bắt buộc cho DM, optional cho CHANNEL)
+    private Set<Integer> memberIds;
 }

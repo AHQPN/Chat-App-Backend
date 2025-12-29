@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20251219165000-1
+      author: buido
+      changes:
+        - addColumn:
+            tableName: messages
+            columns:
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: SENT
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 20251219165000-2
+      author: buido
+      changes:
+        - sql:
+            sql: UPDATE messages SET status = 'DELETED' WHERE is_deleted = 1
+  - changeSet:
+      id: 20251219165000-3
+      author: buido
+      changes:
+         - dropColumn:
+            tableName: messages
+            columnName: is_deleted

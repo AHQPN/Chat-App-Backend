@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20251224145500-1
+      author: antigravity
+      changes:
+        - createTable:
+            tableName: hidden_messages
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_hidden_messages_user
+                    references: users(user_id)
+                    deleteCascade: true
+              - column:
+                  name: message_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_hidden_messages_message
+                    references: messages(id)
+                    deleteCascade: true
+              - column:
+                  name: hidden_at
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 20251224145500-2
+      author: antigravity
+      changes:
+        - addUniqueConstraint:
+            tableName: hidden_messages
+            columnNames: user_id, message_id
+            constraintName: uq_hidden_messages_user_message

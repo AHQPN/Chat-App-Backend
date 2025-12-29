@@ -11,4 +11,6 @@ public interface PinnedMessageRepository extends JpaRepository<PinnedMessage, In
     Boolean existsByMessage_Id(Integer messageId);
 
     void deleteByMessage_Id(Integer messageId);
+
+    long countByConversation_Id(Integer conversationId);
 }

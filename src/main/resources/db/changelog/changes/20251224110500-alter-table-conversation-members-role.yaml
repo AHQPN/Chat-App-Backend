@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20251224110500-1
+      author: antigravity
+      changes:
+        - sql:
+            sql: "ALTER TABLE conversation_members MODIFY COLUMN role ENUM('ADMIN', 'MEMBER', 'GUEST', 'DELETED') DEFAULT 'MEMBER'"

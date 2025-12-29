@@ -16,4 +16,7 @@ public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember
 
     List<WorkspaceMember> findAllByWorkspace_Id(Integer workspaceId);
     Optional<WorkspaceMember> findByWorkspace_IdAndUser_UserId(Integer workspaceId, Integer userId);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT wm.workspace.id FROM WorkspaceMember wm WHERE wm.user.userId = :userId")
+    List<Integer> findWorkspaceIdsByUserId(Integer userId);
 }

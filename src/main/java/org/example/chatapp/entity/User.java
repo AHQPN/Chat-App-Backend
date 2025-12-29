@@ -52,6 +52,9 @@ public class User {
     @Column(name = "is_verified", nullable = false)
     private Boolean isVerified = false;
 
+    @Column(name = "avatar", length = 512)
+    private String avatar;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<VerificationCode> verificationCodes;

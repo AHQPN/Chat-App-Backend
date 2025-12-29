@@ -2,24 +2,31 @@ package org.example.chatapp.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.chatapp.dto.request.SignupRequest;
-import org.example.chatapp.dto.response.ApiResponse;
+import org.example.chatapp.dto.request.UpdateProfileRequest;
 import org.example.chatapp.dto.response.OAuthUserInfoResponse;
 import org.example.chatapp.entity.User;
 import org.example.chatapp.entity.VerificationCode;
+import org.example.chatapp.entity.WorkspaceMember;
 import org.example.chatapp.exception.AppException;
 import org.example.chatapp.exception.ErrorCode;
 import org.example.chatapp.repository.UserRepository;
 import org.example.chatapp.repository.VerificationCodeRepository;
+import org.example.chatapp.repository.WorkspaceMemberRepository;
+import org.example.chatapp.repository.WorkspaceRepository;
 import org.example.chatapp.service.enums.AuthProviderEnum;
 import org.example.chatapp.service.enums.RoleEnum;
 import org.example.chatapp.service.enums.VerificationCodeEnum;
+import org.example.chatapp.service.enums.WorkspaceRoleEnum;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service @RequiredArgsConstructor
@@ -29,6 +36,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationCodeService verificationCodeService;
     private final VerificationCodeRepository verificationCodeRepository;
+    private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceMemberRepository workspaceMemberRepository;
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
 
@@ -82,11 +91,25 @@ public class UserService {
         user.setProvider(provider);
         user.setPasswordHash(null);
         user.setProviderId(userInfo.getId());
-        return userRepository.save(user);
+        
+        // Save user trước để có ID
+        User savedUser = userRepository.save(user);
+
+        WorkspaceMember workspaceMember = new WorkspaceMember();
+        workspaceMember.setUser(savedUser);
+        workspaceMember.setJoinedAt(System.currentTimeMillis());
+        workspaceMember.setRole(WorkspaceRoleEnum.MEMBER);
+        workspaceMember.setWorkspace(workspaceRepository.getWorkspaceById(5));
+        workspaceMemberRepository.save(workspaceMember);
+        
+        return savedUser;
     }
 
 
     public Optional<User> getUserByIdentifier(String identifier) {
+        if (identifier == null || identifier.trim().isEmpty()) {
+            return Optional.empty();
+        }
         Optional<User> usr = userRepository.findByPhoneNumberOrEmail(identifier,identifier);
         return usr;
     }
@@ -123,6 +146,52 @@ public class UserService {
 
 
 
+    public List<User> searchUsersByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return List.of();
+        }
+        return userRepository.findByFullNameContainingIgnoreCaseAndUserTypeNot(name.trim(), RoleEnum.Admin);
+    }
 
+    @Transactional
+    public User updateProfile(Integer userId, UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // Update fullName nếu có
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            user.setFullName(request.getFullName().trim());
+        }
+
+        // Update phoneNumber nếu có
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            // Kiểm tra phoneNumber đã tồn tại chưa (trừ user hiện tại)
+            if (userRepository.existsByPhoneNumber(request.getPhoneNumber()) 
+                    && !request.getPhoneNumber().equals(user.getPhoneNumber())) {
+                throw new AppException(ErrorCode.USER_PHONE_OR_EMAIL_EXIST);
+            }
+            user.setPhoneNumber(request.getPhoneNumber().trim());
+        }
+
+        // Update avatar nếu có
+        if (request.getAvatar() != null) {
+            user.setAvatar(request.getAvatar());
+        }
+
+        return userRepository.save(user);
+    }
+
+    public User getUserById(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    public Page<User> getAllUsers(Integer excludeUserId, Pageable pageable) {
+        if (excludeUserId == null) {
+            return userRepository.findByUserTypeNot(RoleEnum.Admin, pageable);
+        }
+        return userRepository.findByUserIdNotAndUserTypeNot(excludeUserId, RoleEnum.Admin, pageable);
+    }
 
 }
+

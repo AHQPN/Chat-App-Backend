@@ -15,10 +15,16 @@ public class UserDetailsImpl implements UserDetails {
 
     @Getter
     private final Integer id;
-    private final String phoneNumber;
+    @Getter
+    private final String fullName;
     private final String password;
+    private final String phoneNumber;
+    @Getter
+    private final String email;
     @Getter
     private final String role;
+    @Getter
+    private final String avatar;
     private final Collection<? extends GrantedAuthority> authorities;
     @Getter
     private final boolean isVerified;
@@ -34,9 +40,12 @@ public class UserDetailsImpl implements UserDetails {
 
         return new UserDetailsImpl(
                 user.getUserId(),
-                user.getPhoneNumber(),
+                user.getFullName(),
                 user.getPasswordHash(),
+                user.getPhoneNumber(),
+                user.getEmail(),
                 roleName,
+                user.getAvatar(),
                 Collections.singletonList(authority)
                 ,user.getIsVerified()
         );
@@ -49,7 +58,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        return phoneNumber; // Spring Security dùng đây làm username
+        return phoneNumber != null ? phoneNumber : email; // Spring Security dùng đây làm username
     }
 
     @Override

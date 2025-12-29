@@ -11,7 +11,7 @@ public enum ErrorCode {
     // General
     UNCATEGORIZED(HttpStatus.INTERNAL_SERVER_ERROR, 9999, "Uncategorized error"),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, 9998, "Access denied"),
-
+    FORBIDDEN(HttpStatus.FORBIDDEN, 9999, "You don't have permission to do that"),
     // User errors
     USER_EXIST(HttpStatus.BAD_REQUEST, 1001, "User already exists"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, 1002, "User not found"),

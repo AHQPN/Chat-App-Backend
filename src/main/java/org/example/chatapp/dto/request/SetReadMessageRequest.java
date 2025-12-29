@@ -2,10 +2,8 @@ package org.example.chatapp.dto.request;
 
 import lombok.Data;
 
-import java.util.List;
-
 @Data
-public class AttachFileRequest {
+public class SetReadMessageRequest {
+    private Integer conversationId;
     private Integer messageId;
-    private List<String> fileUrl;
 }

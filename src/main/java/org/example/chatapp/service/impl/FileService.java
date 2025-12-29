@@ -26,16 +26,34 @@ public class FileService {
     @Value("${file.upload.max-size}")
     private long maxFileSize;
 
-    private static String emojiFolder = "chat emoji/";
+    @Value("${emoji.folder}")
+    private String emojiFolder;
+
+    @Value("${emoji.base-url}")
+    private String emojiBaseUrl;
+
     private final Storage storage = StorageOptions.getDefaultInstance().getService();
 
     @Transactional
     public List<String> uploadFiles(List<MultipartFile> files) throws IOException {
-        List<String> fileUrls = new ArrayList<>();
+        return processUpload(files).stream()
+                .map(Attachment::getFileUrl)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<Integer> uploadAttachments(List<MultipartFile> files) throws IOException {
+        return processUpload(files).stream()
+                .map(Attachment::getId)
+                .collect(Collectors.toList());
+    }
+
+    private List<Attachment> processUpload(List<MultipartFile> files) throws IOException {
+        List<Attachment> attachments = new ArrayList<>();
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
-                continue;  // Bỏ qua file rỗng nếu có
+                continue;
             }
 
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
@@ -46,34 +64,57 @@ public class FileService {
             storage.create(blobInfo, file.getBytes());
             String fileUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, fileName);
 
-            // Tạo entity Attachment và set thông tin
             Attachment attachment = Attachment.builder()
                     .fileUrl(fileUrl)
-                    .fileType(file.getContentType())  // Ví dụ: "image/jpeg"
-                    .fileSize(file.getSize())         // Kích thước bytes
-                    .uploadedAt(System.currentTimeMillis())  // Timestamp
+                    .fileType(file.getContentType())
+                    .fileSize(file.getSize())
+                    .uploadedAt(System.currentTimeMillis())
                     .build();
 
-            // Lưu vào DB
             attachmentRepository.save(attachment);
-
-            fileUrls.add(fileUrl);
+            attachments.add(attachment);
         }
-
-        return fileUrls;
+        return attachments;
     }
 
-    @Transactional
-    public List<String> getAllEmojiUrls() {
-
+    /**
+     * Lấy danh sách filenames của emoji (không có URL)
+     * Dùng để lưu vào DB chỉ lưu filename
+     */
+    public List<String> getAllEmojiFilenames() {
         Iterable<Blob> blobs = storage.get(bucketName)
                 .list(Storage.BlobListOption.prefix(emojiFolder))
                 .iterateAll();
 
         return StreamSupport.stream(blobs.spliterator(), false)
                 .filter(blob -> !blob.getName().equals(emojiFolder))
-                .map(Blob::getMediaLink)
+                .map(blob -> blob.getName().replace(emojiFolder, "")) // Chỉ lấy filename
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Build full URL từ emoji filename
+     * Dùng khi query từ DB và cần trả về URL cho frontend
+     */
+    public String buildEmojiUrl(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return null;
+        }
+        // Nếu đã là URL đầy đủ, trả về nguyên
+        if (filename.startsWith("http://") || filename.startsWith("https://")) {
+            return filename;
+        }
+        return emojiBaseUrl + filename;
+    }
+
+    /**
+     * Lấy danh sách full URLs của emoji
+     * Dùng cho API GET /files/emoji-urls
+     */
+    @Transactional
+    public List<String> getAllEmojiUrls() {
+        return getAllEmojiFilenames().stream()
+                .map(this::buildEmojiUrl)
+                .collect(Collectors.toList());
+    }
 }

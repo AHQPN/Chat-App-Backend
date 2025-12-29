@@ -3,6 +3,8 @@ package org.example.chatapp.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import org.example.chatapp.service.enums.MessageStatus;
+
 import java.util.List;
 import java.util.Set;
 
@@ -17,14 +19,22 @@ public class Message {
     @Column(name = "content", nullable = false, length = 4000)
     private String content;
 
-    @Column(name = "is_deleted", columnDefinition = "TINYINT(1) DEFAULT 0", nullable = false)
-    private Boolean isDeleted = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private MessageStatus status = MessageStatus.SENT;
 
     @Column(name = "created_at", nullable = false)
     private Long createdAt;
 
     @Column(name = "updated_at")
     private Long updatedAt = null;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "thread_id")
+    private Message thread;
+
+    @Column(name = "thread_reply_count")
+    private Integer threadReplyCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversation_id", nullable = false)

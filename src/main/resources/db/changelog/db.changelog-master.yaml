@@ -23,3 +23,13 @@ databaseChangeLog:
       file: db/changelog/changes/20251105043000-create_message-related-tables.yaml
   - include:
       file: db/changelog/changes/20251211045900_altertable_attachment.yaml
+  - include:
+      file: db/changelog/changes/20251219144900-add-avatar-to-users.yaml
+  - include:
+      file: db/changelog/changes/20251219165000-change-is-deleted-to-status-in-messages.yaml
+  - include:
+      file: db/changelog/changes/20251224101500-add-is-thread-to-messages.yaml
+  - include:
+      file: db/changelog/changes/20251224110500-alter-table-conversation-members-role.yaml
+  - include:
+      file: db/changelog/changes/20251224145500-create-hidden-messages.yaml

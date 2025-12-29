@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20251224101500-1
+      author: antigravity
+      changes:
+        - addColumn:
+            tableName: messages
+            columns:
+              - column:
+                  name: thread_id
+                  type: INT
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_messages_thread_id
+                    references: messages(id)
+              - column:
+                  name: thread_reply_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

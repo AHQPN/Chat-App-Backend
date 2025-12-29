@@ -36,8 +36,20 @@ public class FileController {
         return ResponseEntity.ok("Lay ok");
     }
 
+    /**
+     * Lấy danh sách emoji URLs (full URLs để hiển thị trực tiếp)
+     */
     @GetMapping("/emoji-urls")
     public ResponseEntity<?> getEmojiUrls() {
         return ResponseEntity.ok().body(ApiResponse.builder().data(fileService.getAllEmojiUrls()).build());
+    }
+
+    /**
+     * Lấy danh sách emoji filenames (chỉ filename để lưu vào DB)
+     * Response: ["1F565.png", "1F566.png", ...]
+     */
+    @GetMapping("/emojis")
+    public ResponseEntity<?> getEmojiFilenames() {
+        return ResponseEntity.ok().body(ApiResponse.builder().data(fileService.getAllEmojiFilenames()).build());
     }
 }

@@ -23,6 +23,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        if (identifier == null || identifier.trim().isEmpty()) {
+            throw new UsernameNotFoundException("Identifier cannot be null or empty");
+        }
 
         User user = userRepository.findByPhoneNumberOrEmail(identifier,identifier)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found" ));

@@ -1,6 +1,5 @@
 package org.example.chatapp.config;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatapp.exception.AppException;
 import org.example.chatapp.exception.ErrorCode;
@@ -23,12 +22,21 @@ import java.util.List;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
+
 public class ConversationMembershipInterceptor implements ChannelInterceptor {
 
     private final ConversationService conversationService;
     private final JwtUtils jwtUtils;
     private final UserDetailsServiceImpl userDetailsService;
+
+    public ConversationMembershipInterceptor(
+            @org.springframework.context.annotation.Lazy ConversationService conversationService,
+            JwtUtils jwtUtils,
+            UserDetailsServiceImpl userDetailsService) {
+        this.conversationService = conversationService;
+        this.jwtUtils = jwtUtils;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -73,7 +81,7 @@ public class ConversationMembershipInterceptor implements ChannelInterceptor {
             UserDetails userDetails = userDetailsService.loadUserByUsername(identifier);
 
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
+                    new WebSocketAuthentication(
                             userDetails,
                             null,
                             userDetails.getAuthorities());
@@ -97,6 +105,22 @@ public class ConversationMembershipInterceptor implements ChannelInterceptor {
         }
 
         return message;
+    }
+
+    // Custom Authentication để getName() trả về userId thay vì username/phone
+    // Giúp WebSocketService.convertAndSendToUser(userId, ...) hoạt động đúng
+    private static class WebSocketAuthentication extends UsernamePasswordAuthenticationToken {
+        public WebSocketAuthentication(Object principal, Object credentials, java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities) {
+            super(principal, credentials, authorities);
+        }
+
+        @Override
+        public String getName() {
+            if (getPrincipal() instanceof UserDetailsImpl) {
+                return String.valueOf(((UserDetailsImpl) getPrincipal()).getId());
+            }
+            return super.getName();
+        }
     }
 
     private void restoreAuthenticationFromSession(StompHeaderAccessor accessor) {

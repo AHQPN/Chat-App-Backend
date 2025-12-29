@@ -3,7 +3,7 @@ package org.example.chatapp.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.example.chatapp.service.enums.WorkspaceRoleEnum;
+import org.example.chatapp.service.enums.ConversationRoleEnum;
 
 @Entity
 @Data
@@ -23,8 +23,8 @@ public class ConversationMember {
     private Boolean isNotifEnabled;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", columnDefinition = "ENUM('ADMIN','MEMBER','GUEST') DEFAULT 'MEMBER'")
-    private WorkspaceRoleEnum role;
+    @Column(name = "role", columnDefinition = "ENUM('ADMIN','MEMBER','GUEST','DELETED') DEFAULT 'MEMBER'")
+    private ConversationRoleEnum role;
 
     // conversation_id INT (FK -> conversations.id)
     @ManyToOne(fetch = FetchType.LAZY)

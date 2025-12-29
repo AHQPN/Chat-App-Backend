@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20251219144900-add-avatar-to-users
+      author: system
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: avatar
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: true

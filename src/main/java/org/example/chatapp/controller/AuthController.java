@@ -84,11 +84,19 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getRefreshToken())
                 .httpOnly(true)
                 .secure(false)
-                .path("/auth/refreshtoken")
+                .path("/")
+                .sameSite("Lax")
                 .maxAge(Duration.ofDays(7))
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        LoginResponse loginResponse = new LoginResponse(accessToken,refreshToken.getRefreshToken(),userDetails.getRole(),userDetails.getId());
+        LoginResponse loginResponse = LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getRefreshToken())
+                .role(userDetails.getRole())
+                .userId(userDetails.getId())
+                .fullName(userDetails.getFullName())
+                .avatar(userDetails.getAvatar())
+                .build();
         return ResponseEntity.ok().body(ApiResponse.builder().message("Login Successfully").data(loginResponse).build());
     }
 
@@ -110,35 +118,55 @@ public class AuthController {
 
 
     @GetMapping("/social-login/callback")
-    public ResponseEntity<ApiResponse> socialCallBack
-            (@RequestParam("code") String code ,
-             @RequestParam("state") String state,
-             HttpServletRequest request)
-    {
+    public ResponseEntity<Void> socialCallBack(
+            @RequestParam("code") String code,
+            @RequestParam("state") String state,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        
         Map<String, String> params = Arrays.stream(state.split("&"))
                 .map(s -> s.split("="))
                 .collect(Collectors.toMap(a -> a[0], a -> a[1]));
 
-
         String loginType = params.get("login_type");
         AuthProviderEnum authProvider = AuthProviderEnum.valueOf(loginType.toUpperCase());
 
-        //Đổi code lấy accesstoken từ gg
+        // Đổi code lấy accesstoken từ gg
         String accessToken = oAuthService.exchangeCodeForAccessToken(code, authProvider);
 
-        //Trích xuất thông tin của user thông qua access token vừa lấy
+        // Trích xuất thông tin của user thông qua access token vừa lấy
         OAuthUserInfoResponse userInfo = oAuthService.getUserInfo(accessToken, authProvider);
 
-        // Tạo user mới nếu chưa có , nếu có rồi thì trả ve user hiện tại
+        // Tạo user mới nếu chưa có, nếu có rồi thì trả về user hiện tại
         User user = userService.createUserFromOAuth(userInfo, authProvider);
+        
         // Sinh access token của chat app
-        String jwt = jwtUtils.generateTokenFromIdentifier(user.getEmail());
-
-
+        String jwt = jwtUtils.generateTokenFromIdentifier(user);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUserId());
 
-        LoginResponse loginResponse = new LoginResponse(jwt,refreshToken.getRefreshToken(),RoleEnum.User.name(),user.getUserId());
-        return ResponseEntity.ok().body(ApiResponse.builder().message("Login Successfully").data(loginResponse).build());
+        // Set HTTP-only cookie cho refresh token
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getRefreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .sameSite("Lax")
+                .maxAge(Duration.ofDays(7))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        // Build redirect URL với query parameters
+        String frontendUrl = "http://localhost:5173/auth/callback";
+        String redirectUrl = frontendUrl + "?" +
+                "accessToken=" + URLEncoder.encode(jwt, StandardCharsets.UTF_8) +
+                "&refreshToken=" + URLEncoder.encode(refreshToken.getRefreshToken(), StandardCharsets.UTF_8) +
+                "&userId=" + user.getUserId() +
+                "&role=" + URLEncoder.encode(RoleEnum.User.name(), StandardCharsets.UTF_8) +
+                "&fullName=" + URLEncoder.encode(user.getFullName(), StandardCharsets.UTF_8) +
+                "&avatar=" + URLEncoder.encode(user.getAvatar() != null ? user.getAvatar() : "", StandardCharsets.UTF_8);
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, redirectUrl)
+                .build();
     }
     // ===== SIGNUP =====
     @PostMapping("/signup")
@@ -176,13 +204,14 @@ public class AuthController {
         refreshTokenService.setRevoked(refreshToken);
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getUserId());
 
-        String accessToken = jwtUtils.generateTokenFromIdentifier(user.getPhoneNumber());
+        String accessToken = jwtUtils.generateTokenFromIdentifier(user);
 
         // Set new refresh token cookie
         ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken.getRefreshToken())
                 .httpOnly(true)
                 .secure(false)
-                .path("/auth/refreshtoken")
+                .path("/")
+                .sameSite("Lax")
                 .maxAge(Duration.ofDays(7))
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -210,7 +239,7 @@ public class AuthController {
             ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                     .httpOnly(true)
                     .secure(false)
-                    .path("/auth/refreshtoken")
+                    .path("/")
                     .maxAge(0)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -225,19 +254,18 @@ public class AuthController {
             @RequestParam String email,
             @RequestParam VerificationCodeEnum type,
             @Value("${APP_SITE_URL}") String siteUrl) {
-
-        // 1️⃣ Tìm user theo email
+        //  Tìm user theo email
         Optional<User> optionalUser = userService.getUserByIdentifier(email);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.badRequest().body("User not found");
         }
         User user = optionalUser.get();
 
-        // 2️⃣ Tạo mã xác minh mới
+        //  Tạo mã xác minh mới
         Optional<VerificationCode> optionalCode = verificationCodeService.generateNewVerificationCode(user, type);
 
 
-        // 3️⃣ Gửi email xác minh
+        //  Gửi email xác minh
         optionalCode.ifPresent(code ->
                 verificationCodeService.sendVerificationEmail(user, siteUrl, code)
         );
